@@ -4,8 +4,6 @@ import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
 import utils.SparkUtils
 
-import java.util
-
 object DataFrameExercise extends App {
 
   val spark = new SparkUtils().getSparkSession("DataFrameExercise", "local")

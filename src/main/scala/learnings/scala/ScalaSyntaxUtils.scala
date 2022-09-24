@@ -1,4 +1,4 @@
-package utils
+package learnings.scala
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -9,7 +9,7 @@ object ScalaSyntaxUtils extends App {
   val aBoolean: Boolean = false
 
   // expression
-  val anIfExpression = if(2 > 3) "bigger" else "smaller"
+  val anIfExpression = if (2 > 3) "bigger" else "smaller"
 
   // instructions vs expression
   val theUnit: Unit = println("Hello") // Unit = "no meaningful value"
@@ -19,8 +19,10 @@ object ScalaSyntaxUtils extends App {
 
   // OOP
   class Animal
+
   class Dog extends Animal // single parent class
-  trait Carnivore  { // interface
+
+  trait Carnivore { // interface
     def eat(animal: Animal): Unit
   }
 
@@ -74,12 +76,14 @@ object ScalaSyntaxUtils extends App {
   }
 
   // Future
+
   import scala.concurrent.ExecutionContext.Implicits.global
+
   val aFuture = Future {
     462
   }
 
-  aFuture.onComplete{
+  aFuture.onComplete {
     case Success(value) => println(s"Value: $value")
     case Failure(exception) => println(s"Exception: $exception")
   }
@@ -94,6 +98,7 @@ object ScalaSyntaxUtils extends App {
   // Implicits
   // auto-injected by the compiler
   def methodWithImplicitArgs(implicit x: Int) = x + 43
+
   implicit val implicitInt = 67
   val implicitCall = methodWithImplicitArgs
 
@@ -101,13 +106,16 @@ object ScalaSyntaxUtils extends App {
   case class Person(name: String) {
     def greet = println(s"Hello $name")
   }
+
   implicit def fromStringTtoPerson(name: String) = Person(name)
+
   "Bob".greet // String automatically converted to Person fromStringTtoPerson("Bob").greet
 
   // implicit conversions - Implicit Class
   implicit class Cat(name: String) {
     def purr = println("Meow")
   }
+
   "Lassie".purr
 
   /* How Compiler decides implicits to pass

@@ -8,4 +8,4 @@ echo "\\?		: help with psql commands"
 echo "\\q		: quit"
 echo "=================================================================="
 @echo on
-docker exec -it postgres psql -U docker -d docker
+docker exec -it postgres psql -U docker -d rtjvm

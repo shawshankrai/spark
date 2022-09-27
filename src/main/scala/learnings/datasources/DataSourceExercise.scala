@@ -5,7 +5,7 @@ import utils.SparkUtils
 
 object DataSourceExercise extends App {
 
-  val spark = new SparkUtils().getSparkSession("DataSources-Exercise-1", "local")
+  val spark = SparkUtils.getSparkSession("DataSources-Exercise-1", "local")
 
   var moviesSchema = StructType(
     Array(

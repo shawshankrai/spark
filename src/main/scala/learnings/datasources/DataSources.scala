@@ -7,7 +7,7 @@ import utils.SparkUtils
 object DataSources extends App {
 
   // Create Spark Session
-  val spark = new SparkUtils().
+  val spark = SparkUtils.
     getSparkSession("DataSources-App-1", "local")
 
   // Schema

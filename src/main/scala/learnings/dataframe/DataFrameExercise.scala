@@ -6,7 +6,7 @@ import utils.SparkUtils
 
 object DataFrameExercise extends App {
 
-  val spark = new SparkUtils().getSparkSession("DataFrameExercise", "local")
+  val spark = SparkUtils.getSparkSession("DataFrameExercise", "local")
 
   // 1. Create Manual DF
   val phoneSchema = StructType(

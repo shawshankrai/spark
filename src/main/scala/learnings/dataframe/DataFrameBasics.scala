@@ -1,13 +1,12 @@
 package learnings.dataframe
 
-import org.apache.spark.sql.Row
-import org.apache.spark.sql.types.{DoubleType, LongType, StringType, StructField, StructType}
+import org.apache.spark.sql.types._
 import utils.SparkUtils
 
 object DataFrameBasics extends App {
 
   // Create Spark Session
-  val spark = new SparkUtils().
+  val spark = SparkUtils.
     getSparkSession("Dataframe-App-1", "local")
 
   // Create Dataframe from JSON

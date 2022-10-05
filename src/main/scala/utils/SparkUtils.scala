@@ -1,6 +1,6 @@
 package utils
 
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 object SparkUtils {
 
@@ -11,4 +11,14 @@ object SparkUtils {
       .getOrCreate()
   }
 
+  def getDataFrameFromDB(spark: SparkSession, table: String): DataFrame = {
+    spark.read
+      .format("jdbc")
+      .option("driver", "org.postgresql.Driver")
+      .option("url", "jdbc:postgresql://localhost:5432/rtjvm")
+      .option("user", "docker")
+      .option("password", "docker")
+      .option("dbtable", table)
+      .load()
+  }
 }

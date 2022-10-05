@@ -150,6 +150,7 @@ object Joins extends App {
   **/
 
   /********** joining complex structures ********/
+  // Can use any kind of expression as a join expression
   guitaristDF
     .join(guitarDF.withColumnRenamed("id", "guitarID"), expr("array_contains(guitars, guitarID)")).show()
   /**

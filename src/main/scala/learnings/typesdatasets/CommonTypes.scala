@@ -1,7 +1,7 @@
 package learnings.typesdatasets
 
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, DataFrame}
-import org.apache.spark.sql.functions.{col, initcap, lit, not, regexp_extract, regexp_replace}
 import utils.SparkUtils
 
 object CommonTypes extends App {

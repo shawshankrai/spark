@@ -1,4 +1,4 @@
-package learnings.typesdatasets
+package learnings.types
 
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, DataFrame}

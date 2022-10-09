@@ -117,5 +117,15 @@ object DataSets extends App {
   println(carsDS.map(_.Horsepower.getOrElse(0L)).reduce(_ + _) / carsDS.count())
   carsDS.select(avg($"Horsepower")).show()
 
-
+  /**
+   * Difference in results may be because of nulls
+    406
+    81
+    103
+    +---------------+
+    |avg(Horsepower)|
+    +---------------+
+    |       105.0825|
+    +---------------+
+   * */
 }

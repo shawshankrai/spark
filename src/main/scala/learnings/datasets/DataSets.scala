@@ -1,7 +1,7 @@
 package learnings.datasets
 
 import org.apache.spark.sql.{DataFrame, Dataset}
-import org.apache.spark.sql.functions.avg
+import org.apache.spark.sql.functions.{array_contains, avg, count}
 import org.apache.spark.sql.types._
 import utils.PathGenerators.getPathResourcesMainFolder
 import utils.SparkUtils
@@ -128,4 +128,89 @@ object DataSets extends App {
     |       105.0825|
     +---------------+
    * */
+
+  // Join
+  case class Guitar(id: BigInt, model: String, make: String, guitarType: String)
+  val guitarsDS = spark.read.json(getPathResourcesMainFolder("guitars.json")).as[Guitar]
+
+  case class GuitarPlayer(id: BigInt, name: String, guitars: Seq[BigInt], band: BigInt)
+  val guitarPlayerDS = spark.read.json(getPathResourcesMainFolder("guitarPlayers.json")).as[GuitarPlayer]
+
+  case class Band(id: BigInt, name: String, hometown: String, year: BigInt)
+  val bandsDS = spark.read.json(getPathResourcesMainFolder("bands.json")).as[Band]
+
+  guitarsDS.show()
+  guitarPlayerDS.show()
+  bandsDS.show()
+
+  /**
+  +--------------------+---+------+------------+
+  |          guitarType| id|  make|       model|
+  +--------------------+---+------+------------+
+  |Electric double-n...|  0|Gibson|    EDS-1275|
+  |            Electric|  5|Fender|Stratocaster|
+  |            Electric|  1|Gibson|          SG|
+  |            Acoustic|  2|Taylor|         914|
+  |            Electric|  3|   ESP|        M-II|
+  +--------------------+---+------+------------+
+
+  +----+-------+---+------------+
+  |band|guitars| id|        name|
+  +----+-------+---+------------+
+  |   0|    [0]|  0|  Jimmy Page|
+  |   1|    [1]|  1| Angus Young|
+  |   2| [1, 5]|  2|Eric Clapton|
+  |   3|    [3]|  3|Kirk Hammett|
+  +----+-------+---+------------+
+
+  +-----------+---+------------+----+
+  |   hometown| id|        name|year|
+  +-----------+---+------------+----+
+  |     Sydney|  1|       AC/DC|1973|
+  |     London|  0|Led Zeppelin|1968|
+  |Los Angeles|  3|   Metallica|1981|
+  |  Liverpool|  4| The Beatles|1960|
+  +-----------+---+------------+----+
+  **/
+
+  // Dataset of tuples
+  val guitarPlayerBandsDS: Dataset[(GuitarPlayer, Band)] = guitarPlayerDS
+    .joinWith( // returns DS, join returns DF
+      bandsDS,
+      guitarPlayerDS.col("band") === bandsDS.col("id"),
+      "inner"
+    )
+
+  guitarPlayerBandsDS.show()
+  /**
+  +--------------------+--------------------+
+  |                  _1|                  _2|
+  +--------------------+--------------------+
+  |{1, [1], 1, Angus...|{Sydney, 1, AC/DC...|
+  |{0, [0], 0, Jimmy...|{London, 0, Led Z...|
+  |{3, [3], 3, Kirk ...|{Los Angeles, 3, ...|
+  +--------------------+--------------------+
+  **/
+
+  val guitarAndGuitarPlayerDS: Dataset[(GuitarPlayer, Guitar)] = guitarPlayerDS.joinWith(
+    guitarsDS,
+    array_contains(guitarPlayerDS.col("guitars"), guitarsDS.col("id")),
+    "outer" // A full outer join
+  )
+  guitarAndGuitarPlayerDS.show()
+
+  // Grouping
+  private val carsGroupByOrigin: Dataset[(Option[String], Long)] = carsDS.groupByKey(_.Origin).count()
+  carsGroupByOrigin.show()
+
+  /**
+  +------+--------+
+  |   key|count(1)|
+  +------+--------+
+  |Europe|      73|
+  |   USA|     254|
+  | Japan|      79|
+  +------+--------+
+  **/
+
 }

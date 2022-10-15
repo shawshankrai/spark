@@ -4,10 +4,14 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 object SparkUtils {
 
+  val LOCAL: String = "local"
+
+
   def getSparkSession(appName: String, mode: String, logLevel:String = "INFO"): SparkSession = {
     val spark = SparkSession.builder()
       .appName(appName)
       .config("spark.master", mode)
+      .config("spark.sql.warehouse.dir", "src/main/resources/warehouse") // DB location for spark sql
       .getOrCreate()
     spark.sparkContext.setLogLevel(logLevel)
 

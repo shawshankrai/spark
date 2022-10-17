@@ -2,7 +2,7 @@ name := "spark-scala-core"
 
 version := "0.1"
 
-scalaVersion := "2.12.10"
+scalaVersion := "2.13.9"
 
 val sparkVersion = "3.2.2"
 val vegasVersion = "0.3.11"

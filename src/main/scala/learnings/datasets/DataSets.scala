@@ -3,7 +3,7 @@ package learnings.datasets
 import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions.{array_contains, avg, count}
 import org.apache.spark.sql.types._
-import utils.PathGenerators.getPathResourcesMainFolder
+import utils.PathGenerators.getPathResourcesMainFolderWithFile
 import utils.SparkUtils
 
 import java.sql.Date
@@ -87,7 +87,7 @@ object DataSets extends App {
   ))
   val carsDF: DataFrame = spark.read.schema(carsDateSchema) // added schema because of type casting error
     .option("dateFormat", "YYYY-MM-dd")
-    .json(getPathResourcesMainFolder("cars.json"))
+    .json(getPathResourcesMainFolderWithFile("cars.json"))
 
   carsDF.printSchema()
 
@@ -131,13 +131,13 @@ object DataSets extends App {
 
   // Join
   case class Guitar(id: BigInt, model: String, make: String, guitarType: String)
-  val guitarsDS = spark.read.json(getPathResourcesMainFolder("guitars.json")).as[Guitar]
+  val guitarsDS = spark.read.json(getPathResourcesMainFolderWithFile("guitars.json")).as[Guitar]
 
   case class GuitarPlayer(id: BigInt, name: String, guitars: Seq[BigInt], band: BigInt)
-  val guitarPlayerDS = spark.read.json(getPathResourcesMainFolder("guitarPlayers.json")).as[GuitarPlayer]
+  val guitarPlayerDS = spark.read.json(getPathResourcesMainFolderWithFile("guitarPlayers.json")).as[GuitarPlayer]
 
   case class Band(id: BigInt, name: String, hometown: String, year: BigInt)
-  val bandsDS = spark.read.json(getPathResourcesMainFolder("bands.json")).as[Band]
+  val bandsDS = spark.read.json(getPathResourcesMainFolderWithFile("bands.json")).as[Band]
 
   guitarsDS.show()
   guitarPlayerDS.show()

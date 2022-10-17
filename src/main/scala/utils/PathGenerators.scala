@@ -2,8 +2,12 @@ package utils
 
 object PathGenerators {
 
-  def getPathResourcesMainFolder(fileName: String): String = {
+  def getPathResourcesMainFolderWithFile(fileName: String): String = {
     s"src/main/resources/data/$fileName"
+  }
+
+  def getPathResourcesMainFolder: String = {
+    "src/main/resources/data/"
   }
 
 }

@@ -18,7 +18,7 @@ object SparkSQLExercise extends App {
 
 
   // 1
-  spark.read.json(PathGenerators.getPathResourcesMainFolder("movies.json"))
+  spark.read.json(PathGenerators.getPathResourcesMainFolderWithFile("movies.json"))
     .write
     //.saveAsTable("rtjvm.movies_dup_exercise")
 

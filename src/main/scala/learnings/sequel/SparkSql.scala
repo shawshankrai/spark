@@ -1,7 +1,7 @@
 package learnings.sequel
 
 import org.apache.spark.sql.DataFrame
-import utils.PathGenerators.getPathResourcesMainFolder
+import utils.PathGenerators.getPathResourcesMainFolderWithFile
 import utils.SparkSequelUtils.transferTables
 import utils.SparkUtils
 import utils.SparkUtils.LOCAL
@@ -15,7 +15,7 @@ object SparkSql extends App {
    * The lifetime of this temporary view is tied to the SparkSession
    * that was used to create this Dataset
    * Load DF, Create Vies, Use View*/
-  val carsDF = spark.read.json(getPathResourcesMainFolder("cars.json"))
+  val carsDF = spark.read.json(getPathResourcesMainFolderWithFile("cars.json"))
   carsDF.createOrReplaceTempView("cars")
   val carsMadeInUSA: DataFrame = spark.sql(
     """

@@ -1,7 +1,7 @@
 package bigdata
 
 import org.apache.spark.sql.{Column, functions}
-import org.apache.spark.sql.functions.{hour, mean, not, stddev}
+import org.apache.spark.sql.functions.{avg, count, from_unixtime, hour, mean, not, round, stddev, unix_timestamp}
 import utils.PathGenerators.getPathResourcesMainFolderWithFile
 import utils.SparkUtils
 import utils.SparkUtils.LOCAL
@@ -214,7 +214,7 @@ object TaxiApplication extends App {
     .drop("PULocationID", "DOLocationID")  // remove IDs
     .orderBy($"totalTrips".desc)
 
-  pickupDropOffPopularity($"isLong").show()
+  pickupDropOffPopularity($"isLong")
 
   /**
    * +----------+--------------------+--------------------+
@@ -244,7 +244,7 @@ object TaxiApplication extends App {
    *
    * */
 
-  pickupDropOffPopularity(not($"isLong")).show()
+  pickupDropOffPopularity(not($"isLong"))
   /**
    * +----------+--------------------+--------------------+
    * |totalTrips|         Pickup_zone|        DropOff_zone|
@@ -271,4 +271,133 @@ object TaxiApplication extends App {
    * |       757|Times Sq/Theatre ...|Penn Station/Madi...|
    * +----------+--------------------+--------------------+
    * */
+
+  // 6
+  val rateCodeDistributionDF = taxiDF.groupBy($"RatecodeID")
+    .agg(count("*") as "totalTrips")
+    .orderBy($"totalTrips".desc_nulls_last)
+
+  /**
+   * +----------+----------+
+   * |RatecodeID|totalTrips|
+   * +----------+----------+
+   * |         1|    324387|
+   * |         2|      5878|
+   * |         5|       895|
+   * |         3|       530|
+   * |         4|       193|
+   * |        99|         7|
+   * |         6|         3|
+   * +----------+----------+
+   * */
+
+  // 7
+  val rateCodeEvolution = taxiDF.groupBy($"tpep_pickup_datetime" as "pickup_day", $"RatecodeID")
+    .agg(count("*") as "totalTrips")
+    .orderBy($"pickup_day")
+
+  /**
+   * +-------------------+----------+----------+
+   * |         pickup_day|RatecodeID|totalTrips|
+   * +-------------------+----------+----------+
+   * |2018-01-25 03:30:00|         1|         4|
+   * |2018-01-25 03:30:01|         1|         3|
+   * |2018-01-25 03:30:02|         1|         3|
+   * |2018-01-25 03:30:03|         1|         1|
+   * |2018-01-25 03:30:04|         1|         2|
+   * |2018-01-25 03:30:05|         1|         3|
+   * |2018-01-25 03:30:06|         1|         3|
+   * |2018-01-25 03:30:07|         1|         1|
+   * |2018-01-25 03:30:08|         1|         1|
+   * |2018-01-25 03:30:09|         1|         5|
+   * |2018-01-25 03:30:09|         2|         1|
+   * |2018-01-25 03:30:10|         1|         1|
+   * |2018-01-25 03:30:11|         1|         3|
+   * |2018-01-25 03:30:12|         1|         3|
+   * |2018-01-25 03:30:13|         1|         4|
+   * |2018-01-25 03:30:14|         1|         2|
+   * |2018-01-25 03:30:15|         1|         1|
+   * |2018-01-25 03:30:16|         1|         6|
+   * |2018-01-25 03:30:17|         1|         3|
+   * |2018-01-25 03:30:17|         2|         1|
+   * +-------------------+----------+----------+
+   * */
+
+  // 8
+  val groupAttemptsDf = taxiDF
+    .select(
+      round(unix_timestamp($"tpep_pickup_datetime") / 300).cast("integer").as("fiveMinId"),
+      $"PULocationID",
+      $"total_amount"
+    )
+    .where($"passenger_count" < 3)
+    .groupBy("fiveMinId", "PULocationID")
+    .agg(count("*") as "total_trips", functions.sum($"total_amount") as "total_amount")
+    .withColumn("approximate_datetime", from_unixtime($"fiveMinId" * 300))
+    .join(taxiZoneDF, $"PULocationID" === $"LocationID")
+    .drop("LocationID", "service_zone", "fiveMinId")
+    .orderBy($"total_trips".desc_nulls_last) // keep order by at last wide transformation causing sequence loss
+
+  /**
+   * +------------+-----------+------------------+--------------------+---------+--------------------+
+   * |PULocationID|total_trips|      total_amount|approximate_datetime|  Borough|                Zone|
+   * +------------+-----------+------------------+--------------------+---------+--------------------+
+   * |         237|        115| 1376.199999999999| 2018-01-25 18:45:00|Manhattan|Upper East Side S...|
+   * |         236|        110|1308.1399999999985| 2018-01-25 11:35:00|Manhattan|Upper East Side N...|
+   * |         236|        105|1128.3999999999992| 2018-01-25 18:35:00|Manhattan|Upper East Side N...|
+   * |         237|        104|1164.9699999999991| 2018-01-25 18:10:00|Manhattan|Upper East Side S...|
+   * |         142|        103|1393.9899999999984| 2018-01-26 01:40:00|Manhattan| Lincoln Square East|
+   * |         142|        102|1410.8599999999985| 2018-01-26 01:35:00|Manhattan| Lincoln Square East|
+   * |         236|        101|1087.0899999999988| 2018-01-25 18:30:00|Manhattan|Upper East Side N...|
+   * |         237|        100|1215.0499999999988| 2018-01-25 21:55:00|Manhattan|Upper East Side S...|
+   * |         142|         99|1372.2099999999987| 2018-01-26 01:05:00|Manhattan| Lincoln Square East|
+   * |         162|         99|1615.1199999999983| 2018-01-25 22:35:00|Manhattan|        Midtown East|
+   * |         237|         99|1224.8099999999993| 2018-01-25 23:10:00|Manhattan|Upper East Side S...|
+   * |         161|         97| 1352.659999999999| 2018-01-26 00:05:00|Manhattan|      Midtown Center|
+   * |         161|         97|1429.0299999999986| 2018-01-25 23:10:00|Manhattan|      Midtown Center|
+   * |         161|         96|1428.9899999999993| 2018-01-25 23:35:00|Manhattan|      Midtown Center|
+   * |         237|         96|1146.6399999999994| 2018-01-25 22:45:00|Manhattan|Upper East Side S...|
+   * |         237|         96| 1108.739999999999| 2018-01-25 18:40:00|Manhattan|Upper East Side S...|
+   * |         236|         95| 1333.379999999999| 2018-01-25 11:40:00|Manhattan|Upper East Side N...|
+   * |         161|         95| 1310.079999999999| 2018-01-25 23:15:00|Manhattan|      Midtown Center|
+   * |         236|         95|1251.4599999999998| 2018-01-25 11:45:00|Manhattan|Upper East Side N...|
+   * |         236|         94|1056.7099999999991| 2018-01-25 18:50:00|Manhattan|Upper East Side N...|
+   * +------------+-----------+------------------+--------------------+---------+--------------------+
+   * */
+
+  //import spark.implicits._
+  val percentageGroupingAttempt = 0.05
+  val percentageAcceptGrouping = 0.3
+  val discount = 5
+  val extraCost = 2
+  val avgCostReduction = taxiDF.select(avg($"total_amount")).as[Double].take(1)(0)
+
+  val groupingEstimateEconomicImpactDF = groupAttemptsDf
+    .withColumn("groupedRides", $"total_trips" * percentageGroupingAttempt)
+    .withColumn("acceptedGroupedPriceEconomicImpact", $"groupedRides" * percentageAcceptGrouping * (avgCostReduction - discount))
+    .withColumn("rejectedGroupedByEconomicImpact", $"groupedRides" * (1 - percentageAcceptGrouping) * extraCost)
+    .withColumn("totalImpact", $"acceptedGroupedPriceEconomicImpact" + $"rejectedGroupedByEconomicImpact")
+  /**
+   * +------------+-----------+------------------+--------------------+---------+--------------------+------------------+----------------------------------+-------------------------------+------------------+
+   * |PULocationID|total_trips|      total_amount|approximate_datetime|  Borough|                Zone|      groupedRides|acceptedGroupedPriceEconomicImpact|rejectedGroupedByEconomicImpact|       totalImpact|
+   * +------------+-----------+------------------+--------------------+---------+--------------------+------------------+----------------------------------+-------------------------------+------------------+
+   * |         237|        115| 1376.199999999999| 2018-01-25 18:45:00|Manhattan|Upper East Side S...|              5.75|                18.796413204632465|              8.049999999999999|26.846413204632462|
+   * |         236|        110|1308.1399999999985| 2018-01-25 11:35:00|Manhattan|Upper East Side N...|               5.5|                17.979177847909313|              7.699999999999999|25.679177847909312|
+   *
+   * */
+
+  val totalProfitDF = groupingEstimateEconomicImpactDF.select(
+    functions.sum($"totalImpact").as("total")
+  )
+  totalProfitDF.show()
+
+  /**
+   * +-----------------+
+   * |            total|
+   * +-----------------+
+   * |67611.64114403292|
+   * +-----------------+
+   * */
+
+  
 }

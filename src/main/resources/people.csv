@@ -1,0 +1,6 @@
+name,age,city,occupation,salary,dept_id
+John,25,New York,Engineer,90000,1
+Jane,30,San Francisco,Data Scientist,120000,2
+Jim,35,Chicago,Manager,110000,3
+Alice,28,Boston,Analyst,95000,4
+Bob,40,Seattle,Director,150000,5 

@@ -1,7 +1,8 @@
 package spark
 
 import utils.SparkSessionProvider
-import job.{JobRunner, ExampleJob}
+import job.{JobRunner}
+import example.{ExampleScenarios}
 import org.apache.spark.sql.SparkSession
 
 /**
@@ -14,7 +15,7 @@ object Main {
    */
   def main(args: Array[String]): Unit = {
     val spark: SparkSession = SparkSessionProvider.getSession()
-    new JobRunner(spark, ExampleJob).run()
+    new JobRunner(spark, ExampleScenarios).run()
     spark.stop()
   }
 } 

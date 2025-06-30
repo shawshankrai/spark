@@ -27,6 +27,11 @@ jobs:
             ~/.sbt
           key: sbt-${{ runner.os }}-${{ hashFiles('**/build.sbt') }}
 
+      - name: Set up Scala and SBT
+        uses: coursier/setup-action@v1
+        with:
+          apps: sbt
+
       - name: Build with SBT
         run: sbt compile
         # Only Spark code (src/main/scala/spark, src/main/scala/job, etc.) is tested locally.
@@ -47,6 +52,11 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
+
+      - name: Set up Scala and SBT
+        uses: coursier/setup-action@v1
+        with:
+          apps: sbt
 
       - name: Build assembly JAR
         run: sbt assembly
@@ -84,6 +94,11 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
+
+      - name: Set up Scala and SBT
+        uses: coursier/setup-action@v1
+        with:
+          apps: sbt
 
       - name: Build assembly JAR
         run: sbt assembly

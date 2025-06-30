@@ -22,3 +22,27 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# SBT and Scala
+/target/
+/project/target/
+/project/project/
+/.history
+.cache
+.scala_history
+
+# Spark local output
+/spark-warehouse/
+
+# MacOS
+.DS_Store
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+/.vscode/
+
+# Airflow
+/airflow/logs/

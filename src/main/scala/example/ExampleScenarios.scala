@@ -3,6 +3,7 @@ package example
 import org.apache.spark.sql.{SparkSession, DataFrame, Row}
 import org.apache.spark.sql.functions._
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.expressions.Window
 
 import job.Job
 
@@ -11,7 +12,7 @@ object ExampleScenarios extends Job {
     
     import spark.implicits._  // import implicits for DataFrame operations
 
-    // 1. Create a DataFrame and show it
+    1. Create a DataFrame and show it
     val data = Seq(("John", 25), ("Jane", 30), ("Jim", 35))
     val df = data.toDF("name", "age")
     df.show()
@@ -93,5 +94,87 @@ object ExampleScenarios extends Job {
     } catch {
         case e: Exception => println(s"Error ${e.getMessage}")
     }
+
+    // Step 11: Window functions
+    // Q21: What are window functions in Spark SQL? Give an example use case.
+    // Q22: How do you use row_number, rank, or dense_rank in Spark DataFrames?
+    // Q23: How do you define a window specification and apply it to a DataFrame?
+
+    val data  = Seq(
+      ("Alice", "Sales", 5000),
+      ("Bob", "Sales", 4800),
+      ("Charlie", "Sales", 5200),
+      ("David", "HR", 3900),
+      ("Eve", "HR", 4000)
+    )
+
+    val df = data.toDF("name", "department", "salary")
+    df.show()
+
+    // Suppose we want to rank employees within each department by salary
+    val windowSpec = Window.partitionBy("department").orderBy(desc("salary"))
+
+    // Apply Window Functions
+    val rankedDF = df.withColumn("rank", rank().over(windowSpec))
+    .withColumn("row_nmuber", row_number().over(windowSpec))
+
+    rankedDF.show()
+
+    val sumDF = df.withColumn("sum_salary", sum("salary").over(windowSpec))
+    sumDF.show()
+
+    val withLeadLag = df.withColumn("lead_salary", lead("salary", 1).over(windowSpec))
+    .withColumn("lag_salary", lag("salary", 1).over(windowSpec))
+
+    withLeadLag.show()
+
+    val withCustomWindow = df.withColumn("preceding", sum("salary").over(windowSpec.rowsBetween(Window.unboundedPreceding, Window.currentRow)))
+    .withColumn("following", sum("salary").over(windowSpec.rowsBetween(Window.currentRow, Window.unboundedFollowing)))
+
+    withCustomWindow.show()
+
+    // Step 12: Custom partitioning and shuffles
+    // Q24: How do you implement custom partitioning in Spark?
+    // Q25: What is the difference between hash partitioning and range partitioning?
+    // Q26: How do you minimize shuffle operations in Spark jobs?
+
+    val rddToDf = spark.sparkContext.parallelize(Seq(("Alice", "Sales", 5000), ("Bob", "Sales", 4800), ("Charlie", "Sales", 5200), ("David", "HR", 3900), ("Eve", "HR", 4000)))
+    .toDF("name", "department", "salary")
+
+    println(s"Original partition nums: ${rddToDf.rdd.getNumPartitions}")
+
+    // Repartition by column (department)
+    val repartitionedByDept = rddToDf.repartition($"department")
+    println(s"Partition nums after repartition by department: ${repartitionedByDept.rdd.getNumPartitions}")
+
+    // Repartition by number of partitions (e.g., 3)
+    val repartitionedByNum = rddToDf.repartition(3)
+    println(s"Partition nums after repartition to 3: ${repartitionedByNum.rdd.getNumPartitions}")
+    
+    rddToDf.show()
+
+    // Step 13: Checkpointing and fault tolerance
+    // Q27: What is checkpointing in Spark and when should you use it?
+    // Q28: How does Spark handle lineage and DAG recovery after a failure?
+    // Q29: How do you enable and use checkpointing in a Spark application?
+
+    // Step 14: Structured Streaming
+    // Q30: What is Structured Streaming in Spark and how does it differ from classic streaming?
+    // Q31: How do you define a streaming DataFrame and write a streaming query?
+    // Q32: What are output modes in Structured Streaming and when would you use each?
+    // Q33: How does watermarking work in Spark Structured Streaming?
+
+    // Step 15: Advanced joins and optimizations
+    // Q34: What is a map-side join and when is it beneficial?
+    // Q35: How do you optimize skewed joins in Spark?
+    // Q36: What is a sort-merge join and when does Spark use it?
+    // Q37: How do you control broadcast join thresholds in Spark SQL?
+
+    // Step 16: Performance tuning and internals
+    // Q38: What is Tungsten and how does it improve Spark performance?
+    // Q39: What is the Catalyst optimizer and what kinds of optimizations does it perform?
+    // Q40: How do you tune Spark executor memory and core settings for a large job?
+    // Q41: What is the difference between narrow and wide dependencies in Spark?
+    // Q42: How does Spark handle task scheduling and speculative execution?
   }
 } 
